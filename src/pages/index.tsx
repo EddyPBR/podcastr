@@ -1,7 +1,12 @@
 import { GetStaticProps } from "next";
+import { format, parseISO } from "date-fns";
+import ptBR from "date-fns/locale/pt-BR";
+
 import { api } from "../services/api";
 
-interface IEpisodes {
+import { convertDurationToTimeString } from "../utils/convertDurationToTimeString";
+
+interface IEpisodesData {
   id: string;
   title: string;
   members: string;
@@ -13,6 +18,17 @@ interface IEpisodes {
     type: string;
     duration: number;
   };
+}
+
+interface IEpisodes {
+  id: string;
+  title: string;
+  thumbnail: string;
+  publishedAt: string;
+  duration: number;
+  durationAsString: string;
+  description: string;
+  url: string;
 }
 
 interface IHomeProps {
@@ -31,7 +47,7 @@ export default function Home(props: IHomeProps) {
 export const getStaticProps: GetStaticProps = async () => {
   const EIGHT_HOURS = 28800;
   
-  const { data }: { data: IEpisodes[] } = await api.get("/episodes", {
+  const { data }: { data: IEpisodesData[] } = await api.get("/episodes", {
     params: {
       _limit: 12,
       _sort: "published_at",
@@ -39,9 +55,22 @@ export const getStaticProps: GetStaticProps = async () => {
     }
   });
 
+  const episodes = data.map(episode => {
+    return {
+      id: episode.id,
+      title: episode.title,
+      thumbnail: episode.thumbnail,
+      publishedAt: format(parseISO(episode.published_at), "d MM YY", { locale: ptBR }),
+      duration: Number(episode.file.duration),
+      durationAsString: convertDurationToTimeString(Number(episode.file.duration)),
+      description: episode.description,
+      url: episode.file.url,
+    }
+  });
+
   return {
     props: {
-      episodes: data,
+      episodes,
     },
     revalidate: EIGHT_HOURS,
   };
