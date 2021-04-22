@@ -14,7 +14,7 @@ import { convertDurationToTimeString } from "../utils/convertDurationToTimeStrin
 
 import styles from "./home.module.scss";
 
-type IEpisodeData = {
+type EpisodeData = {
   id: string;
   title: string;
   members: string;
@@ -28,7 +28,7 @@ type IEpisodeData = {
   };
 };
 
-type IEpisode = {
+type Episode = {
   id: string;
   title: string;
   thumbnail: string;
@@ -39,12 +39,12 @@ type IEpisode = {
   url: string;
 };
 
-type IHomeProps = {
-  latestEpisodes: IEpisode[];
-  allEpisodes: IEpisode[];
+type HomeProps = {
+  latestEpisodes: Episode[];
+  allEpisodes: Episode[];
 };
 
-export default function Home({ latestEpisodes, allEpisodes }: IHomeProps) {
+export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
   const { play } = useContext(PlayerContext);
 
   return (
@@ -135,7 +135,7 @@ export default function Home({ latestEpisodes, allEpisodes }: IHomeProps) {
 export const getStaticProps: GetStaticProps = async () => {
   const EIGHT_HOURS = 28800;
 
-  const { data }: { data: IEpisodeData[] } = await api.get("/episodes", {
+  const { data }: { data: EpisodeData[] } = await api.get("/episodes", {
     params: {
       _limit: 12,
       _sort: "published_at",
