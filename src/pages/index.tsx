@@ -1,5 +1,7 @@
 import { GetStaticProps } from "next";
+import Link from "next/link";
 import Image from "next/image";
+
 import { format, parseISO } from "date-fns";
 import ptBR from "date-fns/locale/pt-BR";
 
@@ -9,7 +11,7 @@ import { convertDurationToTimeString } from "../utils/convertDurationToTimeStrin
 
 import styles from "./home.module.scss";
 
-interface IEpisodeData {
+type IEpisodeData = {
   id: string;
   title: string;
   members: string;
@@ -21,9 +23,9 @@ interface IEpisodeData {
     type: string;
     duration: number;
   };
-}
+};
 
-interface IEpisode {
+type IEpisode = {
   id: string;
   title: string;
   thumbnail: string;
@@ -31,14 +33,13 @@ interface IEpisode {
   members: string;
   duration: number;
   durationAsString: string;
-  description: string;
   url: string;
-}
+};
 
-interface IHomeProps {
+type IHomeProps = {
   latestEpisodes: IEpisode[];
   allEpisodes: IEpisode[];
-}
+};
 
 export default function Home({ latestEpisodes, allEpisodes }: IHomeProps) {
   return (
@@ -59,7 +60,9 @@ export default function Home({ latestEpisodes, allEpisodes }: IHomeProps) {
                 />
 
                 <div className={styles.episodeDetails}>
-                  <a href="">{episode.title}</a>
+                  <Link href={`/episodes/${episode.id}`}>
+                    <a>{episode.title}</a>
+                  </Link>
                   <p>{episode.members}</p>
                   <span>{episode.durationAsString}</span>
                   <span>{episode.publishedAt}</span>
@@ -79,12 +82,14 @@ export default function Home({ latestEpisodes, allEpisodes }: IHomeProps) {
 
         <table cellSpacing="0">
           <thead>
-            <th></th>
-            <th>Podcast</th>
-            <th>Integrantes</th>
-            <th>Data</th>
-            <th>Duração</th>
-            <th></th>
+            <tr>
+              <th></th>
+              <th>Podcast</th>
+              <th>Integrantes</th>
+              <th>Data</th>
+              <th>Duração</th>
+              <th></th>
+            </tr>
           </thead>
           <tbody>
             {allEpisodes.map((episode) => {
@@ -99,7 +104,11 @@ export default function Home({ latestEpisodes, allEpisodes }: IHomeProps) {
                       objectFit="cover"
                     />
                   </td>
-                  <td>{episode.title}</td>
+                  <td>
+                    <Link href={`/episodes/${episode.id}`}>
+                      <a>{episode.title}</a>
+                    </Link>
+                  </td>
                   <td>{episode.members}</td>
                   <td style={{ width: 100 }}>{episode.publishedAt}</td>
                   <td>{episode.durationAsString}</td>
@@ -142,7 +151,6 @@ export const getStaticProps: GetStaticProps = async () => {
       durationAsString: convertDurationToTimeString(
         Number(episode.file.duration)
       ),
-      description: episode.description,
       url: episode.file.url,
     };
   });
