@@ -1,4 +1,5 @@
 import { GetStaticProps } from "next";
+import Image from "next/image";
 import { format, parseISO } from "date-fns";
 import ptBR from "date-fns/locale/pt-BR";
 
@@ -6,7 +7,9 @@ import { api } from "../services/api";
 
 import { convertDurationToTimeString } from "../utils/convertDurationToTimeString";
 
-interface IEpisodesData {
+import styles from "./home.module.scss";
+
+interface IEpisodeData {
   id: string;
   title: string;
   members: string;
@@ -20,11 +23,12 @@ interface IEpisodesData {
   };
 }
 
-interface IEpisodes {
+interface IEpisode {
   id: string;
   title: string;
   thumbnail: string;
   publishedAt: string;
+  members: string;
   duration: number;
   durationAsString: string;
   description: string;
@@ -32,14 +36,39 @@ interface IEpisodes {
 }
 
 interface IHomeProps {
-  episodes: IEpisodes[];
+  latestEpisodes: IEpisode[];
+  allEpisodes: IEpisode[];
 }
 
-export default function Home(props: IHomeProps) {
+export default function Home({ latestEpisodes, allEpisodes }: IHomeProps) {
   return (
-    <div>
-      <h1>Index</h1>
-      <p>{JSON.stringify(props.episodes)}</p>
+    <div className={styles.homepage}>
+      <section className={styles.latestEpisodes}>
+        <h2>Últimos lançamentos</h2>
+
+        <ul>
+          {latestEpisodes.map(episode => {
+            return(
+              <li key={episode.id}>
+                <Image width={192} height={192} src={episode.thumbnail} alt={episode.title} objectFit="cover" />
+
+                <div className={styles.episodeDetails}>
+                  <a href="">{episode.title}</a>
+                  <p>{episode.members}</p>
+                  <span>{episode.durationAsString}</span>
+                  <span>{episode.publishedAt}</span>
+                </div>
+
+                <button type="button">
+                  <img src="/play-green.svg" alt="Tocar episódio" />
+                </button>
+              </li>              
+            )
+          })}
+        </ul>
+      </section>
+
+      <section className={styles.allEpisodes}></section>
     </div>
   );
 }
@@ -47,7 +76,7 @@ export default function Home(props: IHomeProps) {
 export const getStaticProps: GetStaticProps = async () => {
   const EIGHT_HOURS = 28800;
   
-  const { data }: { data: IEpisodesData[] } = await api.get("/episodes", {
+  const { data }: { data: IEpisodeData[] } = await api.get("/episodes", {
     params: {
       _limit: 12,
       _sort: "published_at",
@@ -60,7 +89,8 @@ export const getStaticProps: GetStaticProps = async () => {
       id: episode.id,
       title: episode.title,
       thumbnail: episode.thumbnail,
-      publishedAt: format(parseISO(episode.published_at), "d MM YY", { locale: ptBR }),
+      publishedAt: format(parseISO(episode.published_at), "d MM yy", { locale: ptBR }),
+      members: episode.members,
       duration: Number(episode.file.duration),
       durationAsString: convertDurationToTimeString(Number(episode.file.duration)),
       description: episode.description,
@@ -68,9 +98,13 @@ export const getStaticProps: GetStaticProps = async () => {
     }
   });
 
+  const latestEpisodes = episodes.slice(0,2);
+  const allEpisodes = episodes.slice(2, episodes.length);
+
   return {
     props: {
-      episodes,
+      latestEpisodes,
+      allEpisodes
     },
     revalidate: EIGHT_HOURS,
   };
